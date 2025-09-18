@@ -7,6 +7,7 @@ from app.core.scoring.component_matcher import ComponentMatcher
 from app.core.scoring.metrics_calculator import MetricsCalculator
 from app.infra.storage.file_storage import FileStorageService
 from app.infra.llm_providers.openai_provider import OpenAIExtractionProvider, OpenAIFeedbackProvider
+from app.infra.llm_providers.gemini_provider import GeminiExtractionProvider, GeminiFeedbackProvider
 from app.infra.external.plantuml_external import PlantUMLExternalService
 from app.config.settings import get_settings
 
@@ -43,9 +44,9 @@ def get_storage_service(
 
 def get_llm_extraction_service(
     settings = Depends(get_settings_dependency)
-) -> OpenAIExtractionProvider:
+):
     """
-    Get LLM extraction service.
+    Get LLM extraction service based on configured provider.
     
     Args:
         settings: Application settings
@@ -53,17 +54,25 @@ def get_llm_extraction_service(
     Returns:
         Configured LLM extraction service
     """
-    return OpenAIExtractionProvider(
-        api_key=settings.openai_api_key,
-        model=settings.llm_model
-    )
+    if settings.llm_provider == "openai":
+        return OpenAIExtractionProvider(
+            api_key=settings.openai_api_key,
+            model=settings.llm_model
+        )
+    elif settings.llm_provider == "gemini":
+        return GeminiExtractionProvider(
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_model
+        )
+    else:
+        raise ValueError(f"Unknown LLM provider: {settings.llm_provider}")
 
 
 def get_llm_feedback_service(
     settings = Depends(get_settings_dependency)
-) -> OpenAIFeedbackProvider:
+):
     """
-    Get LLM feedback service.
+    Get LLM feedback service based on configured provider.
     
     Args:
         settings: Application settings
@@ -71,10 +80,18 @@ def get_llm_feedback_service(
     Returns:
         Configured LLM feedback service
     """
-    return OpenAIFeedbackProvider(
-        api_key=settings.openai_api_key,
-        model=settings.llm_model
-    )
+    if settings.llm_provider == "openai":
+        return OpenAIFeedbackProvider(
+            api_key=settings.openai_api_key,
+            model=settings.llm_model
+        )
+    elif settings.llm_provider == "gemini":
+        return GeminiFeedbackProvider(
+            api_key=settings.gemini_api_key,
+            model=settings.gemini_model
+        )
+    else:
+        raise ValueError(f"Unknown LLM provider: {settings.llm_provider}")
 
 
 def get_plantuml_service(

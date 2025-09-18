@@ -74,7 +74,7 @@ app/
 ### Prerequisites
 
 - Python 3.12+
-- OpenAI API key (or other LLM provider)
+- LLM API key (OpenAI or Google Gemini)
 - Optional: PlantUML jar file for local diagram generation
 
 ### Installation
@@ -96,11 +96,16 @@ app/
 
 3. **Configure environment**
    ```bash
-   cp .env.example .env
+   cp env.example .env
    # Edit .env with your configuration
    ```
 
-4. **Run the application**
+4. **Check configuration**
+   ```bash
+   python scripts/check_config.py
+   ```
+
+5. **Run the application**
    ```bash
    python main.py
    ```
@@ -195,13 +200,26 @@ Key configuration options in `.env`:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `OPENAI_API_KEY` | OpenAI API key for LLM services | Required |
-| `LLM_MODEL` | LLM model to use | `gpt-4` |
-| `LLM_TEMPERATURE` | Temperature for LLM responses | `0.1` |
+| `LLM_PROVIDER` | LLM provider to use (openai/gemini) | `openai` |
+| `OPENAI_API_KEY` | OpenAI API key | Required if using OpenAI |
+| `GEMINI_API_KEY` | Google Gemini API key | Required if using Gemini |
+| `LLM_MODEL` | OpenAI model to use | `gpt-4o-mini` |
+| `GEMINI_MODEL` | Gemini model to use | `gemini-1.5-flash` |
+| `API_PORT` | Server port | `2012` |
 | `STORAGE_PATH` | Base path for file storage | `./data` |
 | `DEFAULT_ACTOR_WEIGHT` | Weight for actor scoring | `0.3` |
 | `DEFAULT_USECASE_WEIGHT` | Weight for use case scoring | `0.5` |
 | `DEFAULT_RELATIONSHIP_WEIGHT` | Weight for relationship scoring | `0.2` |
+
+### LLM Provider Setup
+
+**For OpenAI:**
+1. Get API key from: https://platform.openai.com/api-keys
+2. Set `LLM_PROVIDER=openai` and `OPENAI_API_KEY=your_key`
+
+**For Google Gemini:**
+1. Get API key from: https://aistudio.google.com/app/apikey
+2. Set `LLM_PROVIDER=gemini` and `GEMINI_API_KEY=your_key`
 
 ## 🛠️ Development
 

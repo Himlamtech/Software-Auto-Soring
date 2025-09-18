@@ -64,22 +64,37 @@ class TextProcessor:
                 continue
             
             # Extract actors
-            actor_match = re.search(r'actor\s+(["\']?)(\w+)\1', line, re.IGNORECASE)
-            if actor_match:
-                elements["actors"].append(actor_match.group(2))
+            actor_patterns = [
+                r'actor\s+"([^"]+)"',  # actor "Name with spaces"
+                r'actor\s+(["\']?)(\w+)\1',  # actor Name or actor "Name"
+                r'actor\s+"([^"]+)"\s+as\s+\w+',  # actor "Name" as alias
+            ]
+            
+            for pattern in actor_patterns:
+                actor_match = re.search(pattern, line, re.IGNORECASE)
+                if actor_match:
+                    if actor_match.lastindex == 1:
+                        elements["actors"].append(actor_match.group(1))
+                    else:
+                        elements["actors"].append(actor_match.group(2))
+                    break
             
             # Extract use cases (multiple patterns)
             usecase_patterns = [
-                r'usecase\s+(["\']?)(\w+)\1',
-                r'ellipse\s+(["\']?)(\w+)\1',
-                r'\(([^)]+)\)'
+                r'usecase\s+"([^"]+)"',  # usecase "Name with spaces"
+                r'usecase\s+(["\']?)(\w+)\1',  # usecase Name
+                r'ellipse\s+"([^"]+)"',  # ellipse "Name"
+                r'\(([^)]+)\)',  # (Use Case Name)
+                r'usecase\s+"([^"]+)"\s+as\s+\w+',  # usecase "Name" as alias
             ]
             
             for pattern in usecase_patterns:
                 usecase_match = re.search(pattern, line, re.IGNORECASE)
                 if usecase_match:
-                    use_case_name = usecase_match.group(1) if len(usecase_match.groups()) == 1 else usecase_match.group(2)
-                    elements["use_cases"].append(use_case_name)
+                    if usecase_match.lastindex == 1:
+                        elements["use_cases"].append(usecase_match.group(1))
+                    else:
+                        elements["use_cases"].append(usecase_match.group(2))
                     break
             
             # Extract relationships

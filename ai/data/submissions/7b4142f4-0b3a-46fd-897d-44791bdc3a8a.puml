@@ -1,0 +1,16 @@
+@startuml
+actor "Độc giả" as reader
+actor "Thủ thư" as librarian
+actor "Quản trị viên" as admin
+usecase "Đăng nhập" as UC1
+usecase "Tìm kiếm sách" as UC2
+usecase "Mượn sách" as UC3
+usecase "Trả sách" as UC4
+reader --> UC1
+reader --> UC2
+reader --> UC3
+reader --> UC4
+librarian --> UC1
+librarian --> UC2
+admin --> UC1
+@enduml

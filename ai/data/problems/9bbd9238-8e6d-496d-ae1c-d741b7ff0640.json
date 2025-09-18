@@ -1,0 +1,10 @@
+{
+  "problem_id": "9bbd9238-8e6d-496d-ae1c-d741b7ff0640",
+  "timestamp": "2025-09-18T16:33:47.886323",
+  "title": "Hệ thống Quản lý Thư viện",
+  "description": "Thiết kế hệ thống quản lý thư viện cho phép: - Độc giả mượn/trả sách - Thủ thư quản lý sách và độc giả - Hệ thống theo dõi sách quá hạn",
+  "functional_requirements": "Đăng nhập, tìm kiếm sách, mượn/trả sách, quản lý độc giả",
+  "expected_actors": "Độc giả, Thủ thư, Quản trị viên",
+  "expected_use_cases": "Đăng nhập, Tìm kiếm sách, Mượn sách, Trả sách, Quản lý sách",
+  "grading_criteria": null
+}

@@ -114,8 +114,33 @@ class ScoringPipeline:
         Returns:
             UMLDiagram with expected components
         """
-        # Placeholder - will be implemented with LLM service injection
-        return UMLDiagram(actors=[], use_cases=[], relationships=[])
+        from app.core.models.uml_components import Actor, UseCase, Relationship
+        
+        # Simple text-based extraction as fallback before LLM implementation
+        actors = []
+        use_cases = []
+        relationships = []
+        
+        # Extract actors from expected_actors field
+        if problem.expected_actors:
+            actor_names = [name.strip() for name in problem.expected_actors.split(',')]
+            actors = [Actor(name=name) for name in actor_names if name]
+        
+        # Extract use cases from expected_use_cases field
+        if problem.expected_use_cases:
+            uc_names = [name.strip() for name in problem.expected_use_cases.split(',')]
+            use_cases = [UseCase(name=name) for name in uc_names if name]
+        
+        # Create basic relationships (actor -> use case associations)
+        for actor in actors:
+            for use_case in use_cases:
+                relationships.append(Relationship(
+                    source=actor.name,
+                    target=use_case.name,
+                    relationship_type="association"
+                ))
+        
+        return UMLDiagram(actors=actors, use_cases=use_cases, relationships=relationships)
     
     async def _extract_actual_components(self, submission) -> UMLDiagram:
         """
@@ -127,8 +152,57 @@ class ScoringPipeline:
         Returns:
             UMLDiagram with actual components
         """
-        # Placeholder - will be implemented with LLM service injection
-        return UMLDiagram(actors=[], use_cases=[], relationships=[])
+        from app.core.models.uml_components import Actor, UseCase, Relationship
+        from app.utils.text_processing import TextProcessor
+        
+        # Extract components from PlantUML code using text processing
+        plantuml_code = submission.plantuml_code
+        elements = TextProcessor.extract_plantuml_elements(plantuml_code)
+        
+        # Create Actor objects
+        actors = [Actor(name=name) for name in elements["actors"]]
+        
+        # Create UseCase objects from use cases found
+        use_cases = [UseCase(name=name) for name in elements["use_cases"]]
+        
+        # Parse relationships from relationship strings
+        relationships = []
+        for rel_line in elements["relationships"]:
+            # Simple parsing for basic relationships like "Actor --> UseCase"
+            if '-->' in rel_line:
+                parts = rel_line.split('-->')
+                if len(parts) == 2:
+                    source = parts[0].strip().strip('"')
+                    target = parts[1].strip().strip('"')
+                    # Clean up PlantUML aliases and quotes
+                    source = self._clean_component_name(source)
+                    target = self._clean_component_name(target)
+                    
+                    relationships.append(Relationship(
+                        source=source,
+                        target=target,
+                        relationship_type="association"
+                    ))
+        
+        return UMLDiagram(actors=actors, use_cases=use_cases, relationships=relationships)
+    
+    def _clean_component_name(self, name: str) -> str:
+        """Clean component name from PlantUML syntax."""
+        # Remove quotes and aliases
+        name = name.strip()
+        if '"' in name:
+            # Extract text within quotes
+            import re
+            match = re.search(r'"([^"]*)"', name)
+            if match:
+                name = match.group(1)
+        
+        # Remove aliases (text after 'as')
+        if ' as ' in name:
+            name = name.split(' as ')[0].strip()
+        
+        # Remove any remaining special characters
+        return name.strip('"').strip()
     
     def _compare_components(
         self,

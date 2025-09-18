@@ -1,0 +1,99 @@
+{
+  "result_id": "3600026d-6936-46e6-97b8-12fd325dafcb",
+  "submission_id": "18629cb2-e56a-4fd7-92c5-55f8147cd295",
+  "timestamp": "2025-09-18T16:37:05.642912",
+  "final_score": 0.0,
+  "overall_metrics": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1_score": 0.0,
+    "accuracy": 0.0
+  },
+  "component_scores": [
+    {
+      "component_type": "actor",
+      "metrics": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "accuracy": 0.0
+      },
+      "comparison": {
+        "component_type": "actor",
+        "true_positives": [],
+        "false_positives": [],
+        "false_negatives": [
+          "độc giả",
+          "quản trị viên",
+          "thủ thư"
+        ]
+      },
+      "weight": 0.3
+    },
+    {
+      "component_type": "use_case",
+      "metrics": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "accuracy": 0.0
+      },
+      "comparison": {
+        "component_type": "use_case",
+        "true_positives": [],
+        "false_positives": [],
+        "false_negatives": [
+          "trả sách",
+          "tìm kiếm sách",
+          "quản lý sách",
+          "mượn sách",
+          "đăng nhập"
+        ]
+      },
+      "weight": 0.5
+    },
+    {
+      "component_type": "relationship",
+      "metrics": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1_score": 0.0,
+        "accuracy": 0.0
+      },
+      "comparison": {
+        "component_type": "relationship",
+        "true_positives": [],
+        "false_positives": [
+          "librarian-association-uc1",
+          "admin-association-uc1",
+          "reader-association-uc4",
+          "reader-association-uc1",
+          "reader-association-uc2",
+          "reader-association-uc3",
+          "librarian-association-uc2"
+        ],
+        "false_negatives": [
+          "độc giả-association-đăng nhập",
+          "độc giả-association-quản lý sách",
+          "quản trị viên-association-mượn sách",
+          "độc giả-association-trả sách",
+          "thủ thư-association-trả sách",
+          "quản trị viên-association-trả sách",
+          "quản trị viên-association-tìm kiếm sách",
+          "độc giả-association-tìm kiếm sách",
+          "quản trị viên-association-quản lý sách",
+          "độc giả-association-mượn sách",
+          "thủ thư-association-mượn sách",
+          "thủ thư-association-quản lý sách",
+          "quản trị viên-association-đăng nhập",
+          "thủ thư-association-đăng nhập",
+          "thủ thư-association-tìm kiếm sách"
+        ]
+      },
+      "weight": 0.2
+    }
+  ],
+  "feedback": [],
+  "processing_time": 0.002602100372314453,
+  "llm_model_used": "placeholder"
+}

@@ -1,7 +1,8 @@
 """Application settings using Pydantic v2."""
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 from functools import lru_cache
 from dotenv import load_dotenv
 import os
@@ -31,19 +32,22 @@ class Settings(BaseSettings):
         description="Allowed file extensions for uploads"
     )
     
-    # Openai Configuration
-    openai_api_key: os.getenv("OPENAI_API_KEY") = Field(default=None, description="OpenAI API key")
-    llm_model: str = Field(default="gpt-4.1-nano", description="LLM model to use")
-    llm_temperature: Optional[float] = Field(default=0.1, description="LLM temperature for extraction")
-    llm_max_tokens: Optional[int] = Field(default=2000, description="Maximum tokens for LLM responses")
-    llm_timeout: Optional[int] = Field(default=60, description="LLM request timeout in seconds")
+    # OpenAI Configuration
+    openai_api_key: Optional[str] = Field(default=None, description="OpenAI API key")
+    llm_model: str = Field(default="gpt-4o-mini", description="LLM model to use")
+    llm_temperature: float = Field(default=0.1, description="LLM temperature for extraction")
+    llm_max_tokens: int = Field(default=2000, description="Maximum tokens for LLM responses")
+    llm_timeout: int = Field(default=60, description="LLM request timeout in seconds")
     
     # Gemini Configuration
-    gemini_api_key: os.getenv("GEMINI_API_KEY") = Field(default=None, description="Gemini API key")
-    gemini_model: str = Field(default="gemini-2.5-flash", description="Gemini model to use")
-    gemini_temperature: Optional[float] = Field(default=0.1, description="Gemini temperature for extraction")
-    gemini_max_tokens: Optional[int] = Field(default=2000, description="Maximum tokens for Gemini responses")
-    gemini_timeout: Optional[int] = Field(default=60, description="Gemini request timeout in seconds")
+    gemini_api_key: Optional[str] = Field(default=None, description="Gemini API key")
+    gemini_model: str = Field(default="gemini-1.5-flash", description="Gemini model to use")
+    gemini_temperature: float = Field(default=0.1, description="Gemini temperature for extraction")
+    gemini_max_tokens: int = Field(default=2000, description="Maximum tokens for Gemini responses")
+    gemini_timeout: int = Field(default=60, description="Gemini request timeout in seconds")
+    
+    # LLM Provider Selection
+    llm_provider: str = Field(default="openai", description="LLM provider to use (openai, gemini)")
     
     # Scoring Configuration
     default_actor_weight: float = Field(default=0.3, description="Default weight for actor scoring")
@@ -84,35 +88,48 @@ class Settings(BaseSettings):
     enable_analytics: bool = Field(default=True, description="Enable analytics tracking")
     analytics_retention_days: int = Field(default=90, description="Analytics data retention in days")
     
-    class Config:
-        """Pydantic configuration."""
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        extra = "ignore"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore"
+    }
     
-    @validator("llm_temperature")
+    @field_validator("llm_temperature", "gemini_temperature")
+    @classmethod
     def validate_temperature(cls, v):
         """Validate LLM temperature is in valid range."""
-        if not 0.0 <= v <= 2.0:
+        if v is not None and not 0.0 <= v <= 2.0:
             raise ValueError("LLM temperature must be between 0.0 and 2.0")
         return v
     
-    @validator("similarity_threshold")
+    @field_validator("llm_provider")
+    @classmethod
+    def validate_llm_provider(cls, v):
+        """Validate LLM provider."""
+        valid_providers = ["openai", "gemini"]
+        if v.lower() not in valid_providers:
+            raise ValueError(f"LLM provider must be one of: {valid_providers}")
+        return v.lower()
+    
+    @field_validator("similarity_threshold")
+    @classmethod
     def validate_similarity_threshold(cls, v):
         """Validate similarity threshold is in valid range."""
         if not 0.0 <= v <= 1.0:
             raise ValueError("Similarity threshold must be between 0.0 and 1.0")
         return v
     
-    @validator("default_actor_weight", "default_usecase_weight", "default_relationship_weight")
+    @field_validator("default_actor_weight", "default_usecase_weight", "default_relationship_weight")
+    @classmethod
     def validate_weights(cls, v):
         """Validate weights are positive."""
         if v < 0.0:
             raise ValueError("Weights must be non-negative")
         return v
     
-    @validator("log_level")
+    @field_validator("log_level")
+    @classmethod
     def validate_log_level(cls, v):
         """Validate log level is valid."""
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -147,6 +164,19 @@ class Settings(BaseSettings):
             "max_tokens": self.gemini_max_tokens,
             "timeout": self.gemini_timeout
         }
+    
+    def get_active_llm_config(self) -> Dict[str, Any]:
+        """Get configuration for the currently selected LLM provider."""
+        if self.llm_provider == "openai":
+            return self.get_openai_config()
+        elif self.llm_provider == "gemini":
+            return self.get_gemini_config()
+        else:
+            raise ValueError(f"Unknown LLM provider: {self.llm_provider}")
+    
+    def get_llm_config(self) -> Dict[str, Any]:
+        """Backward compatibility method for get_active_llm_config."""
+        return self.get_active_llm_config()
     
     def get_storage_config(self) -> Dict[str, Any]:
         """Get storage configuration as dictionary."""
