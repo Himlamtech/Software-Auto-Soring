@@ -205,7 +205,7 @@ Key configuration options in `.env`:
 | `GEMINI_API_KEY` | Google Gemini API key | Required if using Gemini |
 | `LLM_MODEL` | OpenAI model to use | `gpt-4o-mini` |
 | `GEMINI_MODEL` | Gemini model to use | `gemini-1.5-flash` |
-| `API_PORT` | Server port | `2012` |
+| `API_PORT` | Server port | `8000` |
 | `STORAGE_PATH` | Base path for file storage | `./data` |
 | `DEFAULT_ACTOR_WEIGHT` | Weight for actor scoring | `0.3` |
 | `DEFAULT_USECASE_WEIGHT` | Weight for use case scoring | `0.5` |

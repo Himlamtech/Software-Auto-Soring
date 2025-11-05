@@ -47,7 +47,7 @@ def main():
     
     # Start the application
     print("🌟 Starting the application...")
-    print("📚 API documentation will be available at: http://localhost:2012/docs")
+    print("📚 API documentation will be available at: http://localhost:8000/docs")
     print("🛑 Press Ctrl+C to stop the server")
     print("-" * 50)
     

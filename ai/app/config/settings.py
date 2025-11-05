@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     
     # API Configuration
     api_host: str = Field(default="0.0.0.0", description="API host")
-    api_port: int = Field(default=2012, description="API port")
+    api_port: int = Field(default=8000, description="API port")
     api_workers: int = Field(default=1, description="Number of API workers")
     cors_origins: List[str] = Field(default=["*"], description="CORS allowed origins")
     
@@ -41,13 +41,47 @@ class Settings(BaseSettings):
     
     # Gemini Configuration
     gemini_api_key: Optional[str] = Field(default=None, description="Gemini API key")
-    gemini_model: str = Field(default="gemini-1.5-flash", description="Gemini model to use")
+    gemini_model: str = Field(default="gemini-2.5-flash-lite", description="Gemini model to use")
     gemini_temperature: float = Field(default=0.1, description="Gemini temperature for extraction")
-    gemini_max_tokens: int = Field(default=2000, description="Maximum tokens for Gemini responses")
+    gemini_max_tokens: int = Field(default=4096, description="Maximum tokens for Gemini responses")
     gemini_timeout: int = Field(default=60, description="Gemini request timeout in seconds")
+    gemini_rate_limit_rpm: int = Field(default=15, description="Gemini rate limit requests per minute (free tier)")
+
+    # 3-Phase Pipeline Configuration
+    # Phase 1: Convention Normalization
+    normalization_max_retries: int = Field(default=3, description="Max retries for normalization chain")
+    normalization_temperature: float = Field(default=0.1, description="Temperature for convention normalization")
+
+    # Phase 2: Code-based Extraction
+    enable_semantic_matching: bool = Field(default=True, description="Enable semantic component matching")
+    component_similarity_threshold: float = Field(default=0.85, description="Threshold for component similarity matching")
+
+    # Phase 3: Feedback Generation
+    feedback_temperature: float = Field(default=0.3, description="Temperature for feedback generation (higher for creativity)")
+    max_feedback_items: int = Field(default=10, description="Maximum number of feedback items to generate")
+
+    # Multi-diagram Support
+    supported_diagram_types: List[str] = Field(
+        default=["use_case", "class", "sequence"],
+        description="Supported UML diagram types"
+    )
+
+    # Scoring Weights by Diagram Type
+    use_case_weights: Dict[str, float] = Field(
+        default={"actor": 0.3, "use_case": 0.5, "relationship": 0.2},
+        description="Component weights for use case diagrams"
+    )
+    class_diagram_weights: Dict[str, float] = Field(
+        default={"class": 0.4, "attribute": 0.3, "method": 0.2, "relationship": 0.1},
+        description="Component weights for class diagrams"
+    )
+    sequence_diagram_weights: Dict[str, float] = Field(
+        default={"participant": 0.3, "message": 0.5, "activation": 0.2},
+        description="Component weights for sequence diagrams"
+    )
     
     # LLM Provider Selection
-    llm_provider: str = Field(default="openai", description="LLM provider to use (openai, gemini)")
+    llm_provider: str = Field(default="gemini", description="LLM provider to use (openai, gemini)")
     
     # Scoring Configuration
     default_actor_weight: float = Field(default=0.3, description="Default weight for actor scoring")
@@ -95,7 +129,7 @@ class Settings(BaseSettings):
         "extra": "ignore"
     }
     
-    @field_validator("llm_temperature", "gemini_temperature")
+    @field_validator("llm_temperature", "gemini_temperature", "normalization_temperature", "feedback_temperature")
     @classmethod
     def validate_temperature(cls, v):
         """Validate LLM temperature is in valid range."""
@@ -112,12 +146,22 @@ class Settings(BaseSettings):
             raise ValueError(f"LLM provider must be one of: {valid_providers}")
         return v.lower()
     
-    @field_validator("similarity_threshold")
+    @field_validator("similarity_threshold", "component_similarity_threshold")
     @classmethod
     def validate_similarity_threshold(cls, v):
         """Validate similarity threshold is in valid range."""
         if not 0.0 <= v <= 1.0:
             raise ValueError("Similarity threshold must be between 0.0 and 1.0")
+        return v
+
+    @field_validator("supported_diagram_types")
+    @classmethod
+    def validate_diagram_types(cls, v):
+        """Validate supported diagram types."""
+        valid_types = ["use_case", "class", "sequence"]
+        for diagram_type in v:
+            if diagram_type not in valid_types:
+                raise ValueError(f"Unsupported diagram type: {diagram_type}. Valid types: {valid_types}")
         return v
     
     @field_validator("default_actor_weight", "default_usecase_weight", "default_relationship_weight")
@@ -184,6 +228,40 @@ class Settings(BaseSettings):
             "base_path": self.storage_path,
             "max_file_size": self.max_file_size,
             "allowed_extensions": self.allowed_file_extensions
+        }
+
+    def get_diagram_weights(self, diagram_type: str) -> Dict[str, float]:
+        """Get scoring weights for specific diagram type."""
+        weights_map = {
+            "use_case": self.use_case_weights,
+            "class": self.class_diagram_weights,
+            "sequence": self.sequence_diagram_weights
+        }
+        return weights_map.get(diagram_type, self.use_case_weights)
+
+    def get_phase_one_config(self) -> Dict[str, Any]:
+        """Get Phase 1 (Convention Normalization) configuration."""
+        return {
+            "max_retries": self.normalization_max_retries,
+            "temperature": self.normalization_temperature,
+            "model": self.gemini_model,
+            "rate_limit_rpm": self.gemini_rate_limit_rpm
+        }
+
+    def get_phase_two_config(self) -> Dict[str, Any]:
+        """Get Phase 2 (Code-based Extraction) configuration."""
+        return {
+            "enable_semantic_matching": self.enable_semantic_matching,
+            "similarity_threshold": self.component_similarity_threshold,
+            "supported_diagrams": self.supported_diagram_types
+        }
+
+    def get_phase_three_config(self) -> Dict[str, Any]:
+        """Get Phase 3 (AI Feedback Generation) configuration."""
+        return {
+            "temperature": self.feedback_temperature,
+            "max_feedback_items": self.max_feedback_items,
+            "model": self.gemini_model
         }
 
 

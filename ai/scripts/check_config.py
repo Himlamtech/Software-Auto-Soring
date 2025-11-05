@@ -179,7 +179,7 @@ def main():
         print("\n🚀 Start the application with:")
         print("   python main.py")
         print("\n📚 API documentation will be available at:")
-        print("   http://localhost:2012/docs")
+        print("   http://localhost:8000/docs")
     else:
         print("⚠️  Some checks failed. Please fix the issues above before running the application.")
         

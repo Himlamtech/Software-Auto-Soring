@@ -8,7 +8,7 @@ import logging
 
 from app.config.settings import get_settings
 from app.config.logging import setup_logging
-from app.api.routers import scoring, problems
+from app.api.routers import scoring, three_phase_scoring, problems
 
 
 @asynccontextmanager
@@ -58,6 +58,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(scoring.router)
+app.include_router(three_phase_scoring.router)
 app.include_router(problems.router)
 
 

@@ -1,8 +1,0 @@
-{
-  "submission_id": "18629cb2-e56a-4fd7-92c5-55f8147cd295",
-  "timestamp": "2025-09-18T16:37:05.640076",
-  "student_id": "SV001",
-  "plantuml_code": "@startuml\nactor \"Độc giả\" as reader\nactor \"Thủ thư\" as librarian\nactor \"Quản trị viên\" as admin\nusecase \"Đăng nhập\" as UC1\nusecase \"Tìm kiếm sách\" as UC2\nusecase \"Mượn sách\" as UC3\nusecase \"Trả sách\" as UC4\nreader --> UC1\nreader --> UC2\nreader --> UC3\nreader --> UC4\nlibrarian --> UC1\nlibrarian --> UC2\nadmin --> UC1\n@enduml",
-  "submission_time": null,
-  "file_name": null
-}
